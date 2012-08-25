@@ -5,4 +5,7 @@
   (:export #:get-avatar-url
            #:gravatar
            #:libravatar
-           #:unicornify))
+           #:unicornify
+
+           #:canonical-identifier
+           #:identifier-domain))

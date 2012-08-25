@@ -1,8 +1,79 @@
 #+TITLE: Clavatar: Common Lisp Avatar URL Determiner
 
-* Supported Services / Protocols
+* What it Is
+Clavatar is a Common Lisp library to find an avatar URL using some sort of
+identifier.
+
+* Synopsis
+
+#+begin_src lisp
+(clavatar:get-avatar-url "avatars@example.com" :size 120)
+; => #<URI ...>
+(clavatar:get-avatar-url "http://example.com/user/avatars")
+; => #<URI ...>
+#+end_src
+
+* API
+** get-avatar-url (identifier &key size default services)
+Returns an avatar URL for a given identifier.
+
+First, checks if the domain of identifier provides some clue as to how to get
+avatars.  If so, uses the federated behavior of the domain.  Otherwise, tries
+SERVICES in order and uses the first service which does not return a 404.  Will
+use DEFAULT on the last service if no service knows about the identifier.
+
+Note that because this involves DNS and HTTP queries, it is slow and you should
+cache the results.
+
+SERVICES is a list which may contain any of 'LIBRAVATAR, 'GRAVATAR, or
+'UNICORNIFY by default.  Additional services may also be used, if support is
+added for them.  See "Adding a New Service Type", below.
+
+* Supported Services
  * Gravatar
- * Libravatar
+ * Libravatar (both hosted and federated)
  * Unicornify
-* see also
+
+* Supported Identifier Types
+ * E-mail addresses (as strings)
+ * URLs (as strings, and as PURI:URI objects)
+
+* Adding a New Identifier Type
+In some cases, it may be desirable to extend Clavatar's identifier support to an
+object type it does not know about; for instance, the e-mail address type of an
+SMTP library.  This can be accomplished by adding methods on
+CANONICAL-IDENTIFIER and IDENTIFIER-DOMAIN.
+
+The return value from CANONICAL-IDENTIFIER should be a string, representing the
+canonical form of the identifier (hostnames in lowercase, etc.).
+
+The return value of IDENTIFIER-DOMAIN should be a string, representing the
+domain name which has authority for the given identifier.  E.g., the host
+portion of an URL, or the domain of an e-mail address.
+
+see =idenifiers.lisp= for examples.
+
+* Adding a New Service Type
+At minimum, adding a service requires adding a class for the service, and two
+methods on AVATAR-URL.
+
+The first method should be of the form:
+#+begin_src lisp
+  (defmethod avatar-url ((service (eql 'service-name)) identifier &rest rest)
+    (apply #'avatar-url (make-instance 'service-object) identifier rest))
+#+end_src
+SERVICE-NAME and SERVICE-OBJECT should probably be the same symbol, but this is
+not required.  This method is what enables GET-AVATAR-URL's list of services to
+work with bare symbols.
+
+The second method should be of the form:
+#+begin_src lisp
+  (defmethod avatar-url ((service service-type) identifier &key size default &allow-other-keys)
+    (determine-identifiers-avatar-uri))
+#+end_src
+This is the workhorse method whose job is to produce the URL of an avatar.
+
+see =clavatar.lisp= for examples.
+
+* See Also
  * cl-gravatar :: Essentially the same thing, but Gravatar-specific

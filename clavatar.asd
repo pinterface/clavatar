@@ -6,4 +6,5 @@
   :serial t
   :components ((:file "package")
                (:file "util")
+               (:file "identifiers")
                (:file "clavatar")))

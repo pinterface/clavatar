@@ -25,44 +25,42 @@
 (defmethod avatar-url ((service (eql 'federated)) identifier &rest rest)
   (apply #'avatar-url (make-instance 'federated-service) identifier rest))
 
-(defmethod avatar-url :around ((service hosted-service) (identifier string) &key size default &allow-other-keys)
+(defmethod avatar-url :around ((service hosted-service) identifier &key size default &allow-other-keys)
   (let ((uri (puri:uri (slot-value service 'base-uri))))
     (setf (puri:uri-parsed-path uri) (list :absolute "avatar" (call-next-method))
           (puri:uri-query uri) (build-url-query (list :s size :d default)))
     uri))
 
-(defmethod avatar-url ((service gravatar) (identifier string) &rest rest)
+(defmethod avatar-url ((service gravatar) identifier &rest rest)
   (declare (ignore rest))
-  (hash-mail identifier :md5))
+  (identifier-hash identifier :md5))
 
-;; FIXME: Add support for OpenID identifiers
-(defmethod avatar-url ((service libravatar-protocol) (identifier string) &rest rest)
+(defmethod avatar-url ((service libravatar-protocol) identifier &rest rest)
   (declare (ignore rest))
-  (hash-mail identifier :sha256))
+  (identifier-hash identifier :sha256))
 
-(defmethod avatar-url ((service unicornify) (identifier string) &rest rest)
+(defmethod avatar-url ((service unicornify) identifier &rest rest)
   (declare (ignore rest))
-  (hash-mail identifier :md5))
+  (identifier-hash identifier :md5))
 
-;; FIXME: Add support for OpenID identifiers
-(defmethod avatar-url ((service federated-service) (identifier string) &key size default &allow-other-keys)
-  (let* ((response (iolib.sockets::dns-query (format nil "_avatars-sec._tcp.~A." (mail-domain identifier)) :type :srv :decode t)))
+(defmethod avatar-url ((service federated-service) identifier &key size default &allow-other-keys)
+  (let* ((response (iolib.sockets::dns-query (format nil "_avatars-sec._tcp.~A." (identifier-domain identifier)) :type :srv :decode t)))
     (when (listp response)
       (destructuring-bind (port . host) (cdddr response)
         (let ((uri (make-instance 'puri:uri :scheme :https
                                             :host host
                                             :port (unless (default-port-p :https port) port)
                                             :query (build-url-query (list :s size :d default)))))
-          (setf (puri:uri-parsed-path uri) (list :absolute "avatar" (hash-mail identifier :sha256)))
+          (setf (puri:uri-parsed-path uri) (list :absolute "avatar" (identifier-hash identifier :sha256)))
           uri)))))
 
 (defun get-avatar-url (identifier &key size default (services '(libravatar gravatar)))
-  "Returns an avatar URL for a given identifier (e-mail address).
+  "Returns an avatar URL for a given identifier.
 
 First, checks if the domain of identifier provides some clue as to how to get
-avatars.  If so, uses that.  Otherwise, tries SERVICES in order and uses the
-first service which does not return a 404.  Will use DEFAULT on the last service
-if no service knows about the identifier.
+avatars.  If so, uses the federated behavior of the domain.  Otherwise, tries
+SERVICES in order and uses the first service which does not return a 404.  Will
+use DEFAULT on the last service if no service knows about the identifier.
 
 Note that because this involves DNS and HTTP queries, it is slow and you should
 cache the results."
