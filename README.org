@@ -1,0 +1,8 @@
+#+TITLE: Clavatar: Common Lisp Avatar URL Determiner
+
+* Supported Services / Protocols
+ * Gravatar
+ * Libravatar
+ * Unicornify
+* see also
+ * cl-gravatar :: Essentially the same thing, but Gravatar-specific
