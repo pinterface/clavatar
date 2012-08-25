@@ -4,8 +4,8 @@
   (let ((args (loop :for (k v) :on args :by #'cddr
                     :when v
                       :nconc (list k (etypecase v
-                                       (string (urlencode:urlencode v :queryp t))
-                                       (puri:uri (urlencode:urlencode (puri:render-uri v nil) :queryp t))
+                                       (string (drakma:url-encode v :utf-8))
+                                       (puri:uri (drakma:url-encode (puri:render-uri v nil) :utf-8))
                                        (number v))))))
     (and args (format nil "~{~(~a~)=~a~^&~}" args))))
 
