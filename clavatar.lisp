@@ -19,36 +19,11 @@
                                          v)))))
     (and args (format nil "~{~(~a~)=~a~^&~}" args))))
 
-#+(or)
-(defun libravatar-federated-url (e-mail &key size default)
-  (let* ((response (iolib.sockets::dns-query (format nil "_avatars-sec._tcp.~A." (mail-domain e-mail)) :type :srv :decode t)))
-    (when (listp response)
-      (destructuring-bind (x y z port . host)
-          (declare (ignore x y z))
-        (make-avatar-url host (hash-mail e-mail :sha256) :port port :size size :default default)))))
-
-#+(or)
-(defun gravatar-url (e-mail &key size default)
-  (make-avatar-url "secure.gravatar.com" (hash-mail e-mail :md5) :size size :default default))
-
-#+(or)
-(defun unicornify-url (e-mail &key size default)
-  (make-avatar-url "unicornify.appspot.com" (hash-mail e-mail :md5) :size size))
-
 (defun default-port-p (scheme port)
   (when port
     (or (and (eq :https scheme) (= 443 port))
         (and (eq :http  scheme) (=  80 port)))))
 
-#+(or)
-(defun make-avatar-url (host hash &key size default (scheme :https) port)
-  (let ((uri (make-instance 'puri:uri :scheme scheme
-                                      :host host
-                                      :port (unless (default-port-p scheme port) port)
-                                      :query (build-url-query (list :s size :d default)))))
-    (setf (puri:uri-parsed-path uri) (list :absolute "avatars" hash))
-    uri))
-
 (defclass hosted-service () (base-uri))
 (defclass libravatar-protocol () ())
 
