@@ -7,10 +7,10 @@ identifier.
 * Synopsis
 
 #+begin_src lisp
-(clavatar:get-avatar-url "avatars@example.com" :size 120)
-; => #<URI ...>
-(clavatar:get-avatar-url "http://example.com/user/avatars")
-; => #<URI ...>
+  (clavatar:get-avatar-url "avatars@example.com" :size 120)
+  ; => #<URI ...>
+  (clavatar:get-avatar-url "http://example.com/user/avatars")
+  ; => #<URI ...>
 #+end_src
 
 * API
