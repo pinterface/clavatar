@@ -51,7 +51,7 @@ The return value of IDENTIFIER-DOMAIN should be a string, representing the
 domain name which has authority for the given identifier.  E.g., the host
 portion of an URL, or the domain of an e-mail address.
 
-see =idenifiers.lisp= for examples.
+see =identifiers.lisp= for examples.
 
 * Adding a New Service Type
 At minimum, adding a service requires adding a class for the service, and two
